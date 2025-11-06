@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE BIG SURPRISE!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-pink: #fbcfe8;
+            --accent-red: #be185d;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .video-bg {
+            position: fixed;
+            z-index: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            top: 0;
+            left: 0;
+        }
+
+        .overlay-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .hero-text {
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        #message-display {
+            position: relative;
+            overflow: hidden;
+            min-height: 5rem;
+        }
+
+        .sliding-message {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%) translateX(100%);
+            opacity: 0;
+            transition: all 0.7s ease-in-out;
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        .sliding-message.active {
+            transform: translateY(-50%) translateX(0);
+            opacity: 1;
+        }
+
+        .sliding-message.exiting {
+            transform: translateY(-50%) translateX(-100%);
+            opacity: 0;
+        }
+
+        .confetti {
+            position: fixed;
+            top: -10px;
+            z-index: 1000;
+            opacity: 0;
+            border-radius: 50%;
+            pointer-events: none;
+            animation-name: fall;
+            animation-timing-function: linear;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+
+    <!-- 🎥 Local system video background -->
+    <!-- Replace "birthday_video.mp4" with your actual local video file in the same folder -->
+    <video id="birthdayVideo" loop autoplay muted class="video-bg">
+        <source src="birthday_video.mp4" type="video/mp4">
+    </video>
+
+    <!-- 🎵 Local system background music -->
+    <!-- Replace "birthday_song.mp3" with your actual local MP3 file -->
+    <audio id="birthdaySong" loop>
+        <source src="birthday_song.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div class="overlay-container">
+        <a href="birthday_website.html" class="absolute top-4 left-4 text-white hover:text-pink-300 transition duration-200 text-lg font-semibold flex items-center">
+            &larr; Go Back
+        </a>
+
+        <div class="bg-white bg-opacity-5 backdrop-blur-md p-8 md:p-12 rounded-3xl shadow-2xl max-w-2xl w-full text-center border-2 border-pink-400">
+            <h1 class="text-6xl md:text-8xl font-extrabold hero-text text-pink-200 mb-6">
+                A SPECIAL GIFT
+            </h1>
+
+            <div id="message-display"></div>
+
+            <button id="playMusicBtn" class="mt-8 bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 transform hover:scale-105 active:scale-95">
+                Play The Birthday Song! 🎶
+            </button>
+            <p id="musicStatus" class="mt-2 text-sm text-gray-200 italic hidden">
+                (The song is now playing!)
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const videoElement = document.getElementById('birthdayVideo');
+        const songElement = document.getElementById('birthdaySong');
+        const playMusicBtn = document.getElementById('playMusicBtn');
+        const musicStatus = document.getElementById('musicStatus');
+        const messageDisplay = document.getElementById('message-display');
+
+        const sweetMessages = [
+            "Every day spent with you is my favorite adventure.",
+            "You are the sunshine in my life, always bright.",
+            "I cherish every single memory we've made together.",
+            "Thank you for being the wonderful person you are.",
+            "My love for you grows stronger with every passing moment.",
+            "Happy Birthday to my greatest treasure!"
+        ];
+
+        let currentMessageIndex = 0;
+        const MESSAGE_SPEED = 4000;
+
+        function displayMessage(message) {
+            document.querySelectorAll('.sliding-message').forEach(el => {
+                if (!el.classList.contains('active')) el.remove();
+            });
+
+            const messageElement = document.createElement('p');
+            messageElement.className = 'sliding-message text-2xl md:text-3xl font-light text-pink-100 hero-text';
+            messageElement.textContent = message;
+            messageDisplay.appendChild(messageElement);
+
+            setTimeout(() => {
+                messageElement.classList.add('active');
+            }, 10);
+        }
+
+        function nextMessage() {
+            const current = document.querySelector('.sliding-message.active');
+            if (current) {
+                current.classList.remove('active');
+                current.classList.add('exiting');
+                setTimeout(() => current.remove(), 700);
+            }
+
+            currentMessageIndex = (currentMessageIndex + 1) % sweetMessages.length;
+            displayMessage(sweetMessages[currentMessageIndex]);
+        }
+
+        window.onload = function() {
+            videoElement.play().catch(err => console.warn("Video autoplay blocked:", err));
+
+            songElement.volume = 0.7;
+            songElement.play().then(() => {
+                playMusicBtn.classList.add('hidden');
+                musicStatus.classList.remove('hidden');
+            }).catch(() => {
+                playMusicBtn.classList.remove('hidden');
+                musicStatus.classList.add('hidden');
+            });
+
+            if (sweetMessages.length > 0) {
+                displayMessage(sweetMessages[0]);
+                setInterval(nextMessage, MESSAGE_SPEED);
+            }
+
+            setTimeout(startConfetti, 500);
+        };
+
+        playMusicBtn.addEventListener('click', function() {
+            songElement.play().then(() => {
+                playMusicBtn.classList.add('hidden');
+                musicStatus.classList.remove('hidden');
+            });
+        });
+
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            const colors = ['#fbcfe8', '#fecdd3', '#be185d', '#fda4af', '#f472b6', '#fff'];
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.animationDuration = Math.random() * 2 + 3 + 's';
+            confetti.style.width = Math.random() * 10 + 5 + 'px';
+            confetti.style.height = confetti.style.width;
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 5000);
+        }
+
+        function startConfetti() {
+            setInterval(() => {
+                for (let i = 0; i < 5; i++) createConfetti();
+            }, 300);
+        }
+    </script>
+</body>
+</html>
